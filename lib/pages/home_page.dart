@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-//Bill class
+//bill class
 class Bill extends StatelessWidget {
   final String name;
   final String place;
@@ -92,6 +92,7 @@ class HomePage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+
             //chart title
             const Center(
               child: Text(
@@ -134,6 +135,7 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                   ),
+
                   barGroups: List.generate(6, (i) =>
                       BarChartGroupData(
                         x: i,

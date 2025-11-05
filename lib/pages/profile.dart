@@ -9,7 +9,6 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   final String username = 'Cheapy and Spendy';
-
   final List<String> _users = ['Cheapy', 'Spendy'];
 
   @override

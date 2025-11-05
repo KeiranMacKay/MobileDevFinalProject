@@ -5,6 +5,7 @@ import 'pages/account_creation.dart';
 import 'pages/monthly_breakdown.dart';
 import 'pages/profile.dart';
 import 'pages/add_bill.dart';
+import 'pages/login.dart';
 
 void main() {
   runApp(MyApp());
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Final Project',
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: MainPage(),
+      home: LoginPage(),
     );
   }
 }

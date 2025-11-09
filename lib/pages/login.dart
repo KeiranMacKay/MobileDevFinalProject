@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import '../main.dart';
+import 'account_creation.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -12,9 +13,9 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-
-  final String _validEmail = 'test@example.com';
-  final String _validPassword = 'password123';
+  //testing login
+  final String _validEmail = 'test';
+  final String _validPassword = 'test';
 
   void _login() {
     if (_formKey.currentState!.validate()) {
@@ -34,6 +35,13 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  void _goToAccountCreation() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AccountCreationPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,6 +56,7 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               const SizedBox(height: 50),
 
+              //username entry
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -55,10 +64,11 @@ class _LoginPageState extends State<LoginPage> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) =>
-                value == null || value.isEmpty ? 'Enter your email or Username' : null,
+                value == null || value.isEmpty ? 'Enter your email or username' : null,
               ),
               const SizedBox(height: 16),
 
+              //password entry
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(
@@ -71,9 +81,20 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 24),
 
+              //submission button
               ElevatedButton(
                 onPressed: _login,
                 child: const Text('Submit'),
+              ),
+              const SizedBox(height: 16),
+
+              //button to send to account creation
+              TextButton(
+                onPressed: _goToAccountCreation,
+                child: const Text(
+                  'Create Account',
+                  style: TextStyle(fontSize: 16),
+                ),
               ),
             ],
           ),
@@ -82,3 +103,5 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
+

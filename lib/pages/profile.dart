@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'login.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -70,17 +71,17 @@ class _ProfileState extends State<Profile> {
               child: ElevatedButton.icon(
                 onPressed: () {
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Logged out')),
+                  //send back to login screen
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                        (Route<dynamic> route) => false,
                   );
                 },
                 icon: const Icon(Icons.logout),
                 label: const Text('Logout'),
-                style: ElevatedButton.styleFrom(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                ),
               ),
+
             ),
           ],
         ),
@@ -88,4 +89,5 @@ class _ProfileState extends State<Profile> {
     );
   }
 }
+
 

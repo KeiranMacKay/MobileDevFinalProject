@@ -49,15 +49,19 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    final List<Bill> bills = List.generate(
-      20,
-          (i) => Bill(
-        name: 'Bill #${i + 1}',
-        place: 'Starbucks',
-        date: '2025-10-${(i % 30 + 1).toString().padLeft(2, '0')}',
-        price: (i + 1) * 10.5,
-      ),
-    );
+    final List<Bill> bills = [
+      Bill(name: 'Cheapy', place: 'starbucks', date: '2025-11-11', price: 10.50),
+      Bill(name: 'Cheapy', place: 'starbucks', date: '2025-11-11', price: 10.50),
+      Bill(name: 'Cheapy', place: 'starbucks', date: '2025-11-11', price: 10.50),
+      Bill(name: 'Cheapy', place: 'starbucks', date: '2025-11-11', price: 10.50),
+      Bill(name: 'Cheapy', place: 'starbucks', date: '2025-11-11', price: 10.50),
+      Bill(name: 'Cheapy', place: 'starbucks', date: '2025-11-11', price: 10.50),
+      Bill(name: 'Cheapy', place: 'starbucks', date: '2025-11-11', price: 10.50),
+      Bill(name: 'Cheapy', place: 'starbucks', date: '2025-11-11', price: 10.50),
+      Bill(name: 'Cheapy', place: 'starbucks', date: '2025-11-11', price: 10.50),
+    ];
+
+
 
     return Scaffold(
       appBar: AppBar(
@@ -241,3 +245,4 @@ class HomePage extends StatelessWidget {
     );
   }
 }
+

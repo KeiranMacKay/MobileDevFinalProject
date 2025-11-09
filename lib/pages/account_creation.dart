@@ -1,12 +1,145 @@
 import 'package:flutter/material.dart';
 
-class AccountCreation extends StatelessWidget {
+class AccountCreationPage extends StatefulWidget {
+  const AccountCreationPage({super.key});
+
+  @override
+  State<AccountCreationPage> createState() => _AccountCreationPageState();
+}
+
+class _AccountCreationPageState extends State<AccountCreationPage> {
+  final _formKey = GlobalKey<FormState>();
+
+  // Controllers for the text fields
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _person1Controller = TextEditingController();
+  final TextEditingController _person2Controller = TextEditingController();
+
+  void _createAccount() {
+    if (_formKey.currentState!.validate()) {
+
+      //doesnt do anything at the moment, needs to be hooked up to backend
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Account created successfully!')),
+      );
+
+      //return to login screen
+      Future.delayed(const Duration(seconds: 1), () {
+        Navigator.pop(context);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('Account Creation', style: TextStyle(fontSize: 24)),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Create Account'),
+      ),
+
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 30),
+
+              //Add email
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+                //checking for valid email by watching for @
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Enter your email';
+                  } else if (!value.contains('@')) {
+                    return 'Enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              //add username
+              TextFormField(
+                controller: _usernameController,
+                decoration: const InputDecoration(
+                  labelText: 'Username',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                value == null || value.isEmpty ? 'Enter your username' : null,
+              ),
+              const SizedBox(height: 16),
+
+              //add password
+              TextFormField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                value == null || value.isEmpty ? 'Enter your password' : null,
+              ),
+              const SizedBox(height: 16),
+
+              //add person 1 name
+              TextFormField(
+                controller: _person1Controller,
+                decoration: const InputDecoration(
+                  labelText: 'Person 1 Name',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                value == null || value.isEmpty ? 'Enter Person 1 name' : null,
+              ),
+              const SizedBox(height: 16),
+
+              //add person 2 name
+              TextFormField(
+                controller: _person2Controller,
+                decoration: const InputDecoration(
+                  labelText: 'Person 2 Name',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                value == null || value.isEmpty ? 'Enter Person 2 name' : null,
+              ),
+              const SizedBox(height: 30),
+
+              ElevatedButton(
+                onPressed: _createAccount,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: const Text(
+                  'Create Account',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _person1Controller.dispose();
+    _person2Controller.dispose();
+    super.dispose();
   }
 }

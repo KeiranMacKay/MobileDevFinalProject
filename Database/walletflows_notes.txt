@@ -1,0 +1,71 @@
+
+CSCI Mobile Dev – Part 2 (DB) – Short Notes
+-------------------------------------------
+App: WalletFlow (prototype)
+DB: SQLite (local on device)
+
+Why these tables?
+- users: single account on the device (email + hash just as placeholder)
+- members: roommates/friends for splitting (Person A / Person B on the UI)
+- categories: "Food & Drink", "Utilities", etc.
+- budgets + budget_allocations: needed for monthly breakdown and planned vs. spent
+- expenses: each purchase/bill with optional note
+- expense_splits: connects expenses to members so I can compute per-person totals
+- receipts: small reference (uri) to attached photo from the Add Bill screen
+- recurring_bills: template for bills the user pays every month
+
+Assumptions
+- Amounts are stored in cents as INTEGER.
+- Dates are TEXT in YYYY-MM-DD so I can use strftime in queries.
+- For now there’s only one account on the device (multi-user serverside is out of scope).
+
+Queries I’m using in the UI
+---------------------------
+-- Per-person totals for a given month (e.g., '2025-01')
+SELECT m.nickname,
+       SUM(s.share_cents)/100.0 AS total
+FROM expense_splits s
+JOIN members m   ON m.member_id = s.member_id
+JOIN expenses e  ON e.expense_id = s.expense_id
+WHERE m.user_id = :userId
+  AND strftime('%Y-%m', e.expense_date) = :yyyymm
+GROUP BY m.member_id
+ORDER BY total DESC;
+
+-- Category totals for the month (for pie)
+SELECT IFNULL(c.name, 'Uncategorized') AS category,
+       SUM(e.amount_cents)/100.0 AS spent
+FROM expenses e
+LEFT JOIN categories c ON c.category_id = e.category_id
+WHERE e.user_id = :userId
+  AND strftime('%Y-%m', e.expense_date) = :yyyymm
+GROUP BY category
+ORDER BY spent DESC;
+
+-- Budget vs. spent (simple join using the active budget row)
+SELECT c.name,
+       a.planned_cents/100.0 AS planned,
+       IFNULL(SUM(e.amount_cents),0)/100.0 AS spent
+FROM categories c
+JOIN budget_allocations a ON a.category_id = c.category_id
+JOIN budgets b ON b.budget_id = a.budget_id
+LEFT JOIN expenses e ON e.category_id = c.category_id
+                     AND strftime('%m', e.expense_date) = printf('%02d', b.month)
+                     AND strftime('%Y', e.expense_date) = CAST(b.year AS TEXT)
+WHERE c.user_id = :userId AND b.user_id = :userId
+GROUP BY c.category_id
+ORDER BY c.name;
+
+-- Recent history (Transaction History list on Home)
+SELECT description, expense_date, amount_cents/100.0 AS amount
+FROM expenses
+WHERE user_id = :userId
+ORDER BY expense_date DESC, created_at DESC
+LIMIT 30;
+
+How to run quickly (demo steps)
+1) sqlite3 walletflow.db < student_walletflow.sql
+2) SELECT * FROM expenses;   -- should show Starbucks, Five Guys, McDonalds
+3) Try the “Per-person totals” query for '2025-01' to fill those summary boxes.
+
+That’s it for Part 2; will hook this to Room/DAO next.

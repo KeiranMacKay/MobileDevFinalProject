@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AddBill extends StatefulWidget {
+  const AddBill({super.key});
+
   @override
   State<AddBill> createState() => _BillEntryFormState();
 }
@@ -61,7 +63,7 @@ class _BillEntryFormState extends State<AddBill> {
                           labelText: 'Select Name',
                           border: OutlineInputBorder(),
                         ),
-                        value: _selectedName,
+                        initialValue: _selectedName,
                         items: _names
                             .map((name) => DropdownMenuItem (
                           value: name,

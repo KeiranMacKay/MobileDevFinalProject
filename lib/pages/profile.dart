@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
+import 'package:finalproject/notifications.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -21,8 +22,6 @@ class _ProfileState extends State<Profile> {
         child: Column(
           children: [
             const SizedBox(height: 30),
-
-            //avatar
             Column(
               children: [
                 CircleAvatar(
@@ -36,8 +35,6 @@ class _ProfileState extends State<Profile> {
                   ),
                 ),
                 const SizedBox(height: 12),
-
-                //username
                 Text(
                   username,
                   style: const TextStyle(
@@ -48,40 +45,38 @@ class _ProfileState extends State<Profile> {
               ],
             ),
             const SizedBox(height: 30),
-
-            //users display
             Expanded(
               child: ListView.builder(
                 itemCount: _users.length,
                 itemBuilder: (context, index) {
-                  String user = _users[index];
+                  final user = _users[index];
                   return ListTile(
-                    leading: CircleAvatar(
-                      child: Text(user[0]),
-                    ),
+                    leading: CircleAvatar(child: Text(user[0])),
                     title: Text(user),
                     onTap: () {},
                   );
                 },
               ),
             ),
-
-            //logout
             Center(
               child: ElevatedButton.icon(
-                onPressed: () {
+                onPressed: () async {
+                  await Notifications().showNoti(
+                    title: "Logout",
+                    body: "You have been logged out.",
+                  );
 
-                  //send back to login screen
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => LoginPage()),
-                        (Route<dynamic> route) => false,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginPage(),
+                    ),
+                        (route) => false,
                   );
                 },
                 icon: const Icon(Icons.logout),
                 label: const Text('Logout'),
               ),
-
             ),
           ],
         ),
@@ -89,5 +84,3 @@ class _ProfileState extends State<Profile> {
     );
   }
 }
-
-

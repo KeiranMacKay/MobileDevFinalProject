@@ -41,10 +41,12 @@ class HomePage extends StatelessWidget {
   final String secondName = "Spendy";
   final double firstSpending = 240.21;
   final double secondSpending = 320.01;
-  final List<double> firstMonthlyVales = [1021.56, 1542.45, 648.10, 5460.90, 2121.22, 240.21];
-  final List<double> secondMonthlyVales = [721.56, 542.45, 462.10, 3541.90, 1548.22, 320.01];
-  final List<String> currentViewableMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+  final List<double> firstMonthlyVales = const [1021.56, 1542.45, 648.10, 5460.90, 2121.22, 240.21];
+  final List<double> secondMonthlyVales = const [721.56, 542.45, 462.10, 3541.90, 1548.22, 320.01];
+  final List<String> currentViewableMonths = const ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
   final double graphMax = 10000.00;
+
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {

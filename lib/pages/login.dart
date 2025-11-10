@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart';
 import '../main.dart';
 import 'account_creation.dart';
+import 'package:finalproject/notifications.dart';
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
   @override
   _LoginPageState createState() => _LoginPageState();
 }
@@ -83,7 +85,15 @@ class _LoginPageState extends State<LoginPage> {
 
               //submission button
               ElevatedButton(
-                onPressed: _login,
+                onPressed: () async{
+                  await Notifications().showNoti(
+                    title: 'Login',
+                    body:'You have logged in successfully',
+                  );
+                  _login();
+                },
+
+
                 child: const Text('Submit'),
               ),
               const SizedBox(height: 16),

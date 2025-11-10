@@ -25,13 +25,27 @@ class _LoginPageState extends State<LoginPage> {
       String password = _passwordController.text.trim();
 
       if (email == _validEmail && password == _validPassword) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MainPage()),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Welcome, $email!'),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
+
+        // Delay navigation slightly so the snackbar can appear first
+        Future.delayed(const Duration(milliseconds: 500), () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => MainPage()),
+          );
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid email or password')),
+          const SnackBar(
+            content: Text('Invalid email or password'),
+            duration: Duration(seconds: 2),
+          ),
         );
       }
     }

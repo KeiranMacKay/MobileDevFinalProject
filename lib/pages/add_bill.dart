@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class AddBill extends StatefulWidget {
   const AddBill({super.key});
@@ -37,6 +38,30 @@ class _BillEntryFormState extends State<AddBill> {
       setState(() {
         _selectedName = null;
         _isReoccurring = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Bill added successfully!'),
+          duration: Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime now = DateTime.now();
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        _dateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
       });
     }
   }
@@ -92,7 +117,7 @@ class _BillEntryFormState extends State<AddBill> {
                             });
                           },
                         ),
-                        const Text('Reoccurring?'),
+                        const Text('Reccurring?'),
                       ],
                     ),
                   ],
@@ -114,13 +139,25 @@ class _BillEntryFormState extends State<AddBill> {
                 //date entry box
                 TextFormField(
                   controller: _dateController,
+                  readOnly: true, // prevent manual editing
                   decoration: const InputDecoration(
                     labelText: 'Date',
                     hintText: 'YYYY-MM-DD',
                     border: OutlineInputBorder(),
+                    suffixIcon: Icon(Icons.calendar_today),
                   ),
-                  validator: (value) =>
-                  value == null || value.isEmpty ? 'Enter a date' : null,
+                  onTap: () => _selectDate(context),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Enter a date';
+                    }
+                    // Enforce format just in case
+                    final RegExp dateRegExp = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+                    if (!dateRegExp.hasMatch(value)) {
+                      return 'Enter date in format YYYY-MM-DD';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 12),
 

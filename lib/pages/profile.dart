@@ -53,7 +53,13 @@ class _ProfileState extends State<Profile> {
                   return ListTile(
                     leading: CircleAvatar(child: Text(user[0])),
                     title: Text(user),
-                    onTap: () {},
+                    onTap: () {ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('$user selected'),
+                        duration: const Duration(seconds: 3),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );},
                   );
                 },
               ),

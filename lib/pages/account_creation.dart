@@ -10,12 +10,24 @@ class AccountCreationPage extends StatefulWidget {
 class _AccountCreationPageState extends State<AccountCreationPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers for the text fields
+  //text field controllers
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _person1Controller = TextEditingController();
-  final TextEditingController _person2Controller = TextEditingController();
+
+  //add people to account, starts with 2
+  final List<TextEditingController> _personControllers = [
+    TextEditingController(),
+    TextEditingController(),
+  ];
+
+  void _addPersonField() {
+    if (_personControllers.length < 6) {
+      setState(() {
+        _personControllers.add(TextEditingController());
+      });
+    }
+  }
 
   void _createAccount() {
     if (_formKey.currentState!.validate()) {
@@ -48,7 +60,7 @@ class _AccountCreationPageState extends State<AccountCreationPage> {
             children: [
               const SizedBox(height: 30),
 
-              //Add email
+              //add email
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -92,28 +104,33 @@ class _AccountCreationPageState extends State<AccountCreationPage> {
               ),
               const SizedBox(height: 16),
 
-              //add person 1 name
-              TextFormField(
-                controller: _person1Controller,
-                decoration: const InputDecoration(
-                  labelText: 'Person 1 Name',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                value == null || value.isEmpty ? 'Enter Person 1 name' : null,
-              ),
-              const SizedBox(height: 16),
+              //add new person entry field, then move button down, MAX:6
+              Column(
+                children: [
+                  for (int i = 0; i < _personControllers.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: TextFormField(
+                        controller: _personControllers[i],
+                        decoration: InputDecoration(
+                          labelText: 'Person ${i + 1} Name',
+                          border: const OutlineInputBorder(),
+                        ),
+                        validator: (value) =>
+                        value == null || value.isEmpty
+                            ? 'Enter Person ${i + 1} name'
+                            : null,
+                      ),
+                    ),
 
-              //add person 2 name
-              TextFormField(
-                controller: _person2Controller,
-                decoration: const InputDecoration(
-                  labelText: 'Person 2 Name',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                value == null || value.isEmpty ? 'Enter Person 2 name' : null,
+                  if (_personControllers.length < 6)
+                    TextButton(
+                      onPressed: _addPersonField,
+                      child: const Text("Add Person"),
+                    ),
+                ],
               ),
+
               const SizedBox(height: 30),
 
               ElevatedButton(
@@ -138,8 +155,9 @@ class _AccountCreationPageState extends State<AccountCreationPage> {
     _emailController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
-    _person1Controller.dispose();
-    _person2Controller.dispose();
+    for (var controller in _personControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 }

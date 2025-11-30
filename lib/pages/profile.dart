@@ -10,8 +10,17 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-  final String username = 'Cheapy and Spendy';
-  final List<String> _users = ['Cheapy', 'Spendy'];
+  //account username
+  final String username = 'The cheapies';
+  //list of users
+  final List<String> _users = [
+    'Cheapy',
+    'Spendy',
+    'Wastey',
+    'Hoardy',
+    'Greedy',
+    'John'
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -45,25 +54,34 @@ class _ProfileState extends State<Profile> {
               ],
             ),
             const SizedBox(height: 30),
+
+            //dynamic list, 2-6
             Expanded(
               child: ListView.builder(
                 itemCount: _users.length,
                 itemBuilder: (context, index) {
                   final user = _users[index];
+
                   return ListTile(
-                    leading: CircleAvatar(child: Text(user[0])),
+                    leading: CircleAvatar(
+                      child: Text(user[0]),
+                    ),
                     title: Text(user),
-                    onTap: () {ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('$user selected'),
-                        duration: const Duration(seconds: 3),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );},
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('$user selected'),
+                          duration: const Duration(seconds: 3),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
                   );
                 },
               ),
             ),
+
+            //logout button
             Center(
               child: ElevatedButton.icon(
                 onPressed: () async {
@@ -90,3 +108,4 @@ class _ProfileState extends State<Profile> {
     );
   }
 }
+

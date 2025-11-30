@@ -28,7 +28,7 @@ class _BillEntryFormState extends State<AddBill> {
       double price = double.parse(_priceController.text);
       String? notes = _notesController.text.isEmpty ? null : _notesController.text;
 
-      //temp just for testing
+      //temp just for testing, hook up the database here so that the submission fields go to the database
       print('Name: $_selectedName, Place: $place, Date: $date, Price: $price, Reoccurring: $_isReoccurring, Notes: $notes');
 
       _placeController.clear();
@@ -190,11 +190,36 @@ class _BillEntryFormState extends State<AddBill> {
                 ),
                 const SizedBox(height: 20),
 
-                //submission button
+                //final buttons
                 Center(
-                  child: ElevatedButton(
-                    onPressed: _submit,
-                    child: const Text('Submit Bill'),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+
+                      //photo add button (does nothing right now, needs to be hooked up to camera and whatever that does)
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          child: const Text(
+                            'Photo add',
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      //bill submission, all fields must be complete besides notes
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _submit,
+                          child: const Text(
+                            'Submit Bill',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+
+                    ],
                   ),
                 ),
 
@@ -206,4 +231,5 @@ class _BillEntryFormState extends State<AddBill> {
     );
   }
 }
+
 

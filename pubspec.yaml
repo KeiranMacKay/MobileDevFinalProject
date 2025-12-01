@@ -10,7 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  intl: ^0.19.0
+  image_picker: ^1.0.7
+  http: ^1.2.0
   cupertino_icons: ^1.0.8
   fl_chart: ^1.1.1
 
@@ -19,7 +21,6 @@ dependencies:
   path_provider: ^2.1.5
 
   # Existing project packages (used by your teammates)
-  intl: ^0.19.0
   flutter_local_notifications: ^18.0.1
 
 dev_dependencies:

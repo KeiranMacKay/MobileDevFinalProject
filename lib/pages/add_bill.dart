@@ -1,3 +1,4 @@
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -23,6 +24,11 @@ class _BillEntryFormState extends State<AddBill> {
   // dropdown list names
   final List<String> _names = ['Cheapy', 'Spendy'];
 
+  // for camera / photo capture
+  final ImagePicker _picker = ImagePicker();
+  bool _isProcessingReceipt = false;
+  String? _receiptImagePath; // path to the captured photo
+
   @override
   void dispose() {
     _placeController.dispose();
@@ -38,9 +44,19 @@ class _BillEntryFormState extends State<AddBill> {
     final place = _placeController.text.trim();
     final date = _dateController.text.trim();
     final price = double.parse(_priceController.text.trim());
-    final notes = _notesController.text.trim().isEmpty
-        ? null
-        : _notesController.text.trim();
+
+    // Attach receipt image path into notes so it is saved in the DB
+    String notesText = _notesController.text.trim();
+    if (_receiptImagePath != null && _receiptImagePath!.isNotEmpty) {
+      final receiptLine = 'Receipt image path: $_receiptImagePath';
+      if (notesText.isEmpty) {
+        notesText = receiptLine;
+      } else if (!notesText.contains(receiptLine)) {
+        notesText = '$notesText\n$receiptLine';
+      }
+    }
+
+    final notes = notesText.isEmpty ? null : notesText;
 
     final name = _selectedName ?? 'Unknown';
 
@@ -58,8 +74,8 @@ class _BillEntryFormState extends State<AddBill> {
 
       debugPrint(
         'AddBill: inserted expense id=$id '
-        'Name: $name, Place: $place, Date: $date, Price: $price, '
-        'Reoccurring: $_isReoccurring, Notes: $notes',
+            'Name: $name, Place: $place, Date: $date, Price: $price, '
+            'Reoccurring: $_isReoccurring, Notes: $notes',
       );
 
       if (!mounted) return;
@@ -84,6 +100,7 @@ class _BillEntryFormState extends State<AddBill> {
       setState(() {
         _selectedName = null;
         _isReoccurring = false;
+        _receiptImagePath = null;
       });
     } catch (e) {
       debugPrint('AddBill: error inserting bill: $e');
@@ -110,9 +127,51 @@ class _BillEntryFormState extends State<AddBill> {
 
     if (pickedDate != null) {
       setState(() {
-        _dateController.text =
-            DateFormat('yyyy-MM-dd').format(pickedDate);
+        _dateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
       });
+    }
+  }
+
+  Future<void> _onPhotoAddPressed() async {
+    try {
+      setState(() => _isProcessingReceipt = true);
+
+      // Opening the camera for use
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85,
+      );
+
+      // Dealing with user not taking the photo and cancelling
+      if (pickedFile == null) {
+        return;
+      }
+
+      setState(() {
+        _receiptImagePath = pickedFile.path;
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Photo has been captured'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error with photo capture $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error with photo capture $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessingReceipt = false);
+      }
     }
   }
 
@@ -139,10 +198,12 @@ class _BillEntryFormState extends State<AddBill> {
                         ),
                         value: _selectedName,
                         items: _names
-                            .map((name) => DropdownMenuItem(
-                                  value: name,
-                                  child: Text(name),
-                                ))
+                            .map(
+                              (name) => DropdownMenuItem(
+                            value: name,
+                            child: Text(name),
+                          ),
+                        )
                             .toList(),
                         onChanged: (value) {
                           setState(() {
@@ -150,7 +211,7 @@ class _BillEntryFormState extends State<AddBill> {
                           });
                         },
                         validator: (value) =>
-                            value == null ? 'Select a name' : null,
+                        value == null ? 'Select a name' : null,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -179,9 +240,7 @@ class _BillEntryFormState extends State<AddBill> {
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) =>
-                      value == null || value.isEmpty
-                          ? 'Enter a place'
-                          : null,
+                  value == null || value.isEmpty ? 'Enter a place' : null,
                 ),
                 const SizedBox(height: 12),
 
@@ -217,7 +276,7 @@ class _BillEntryFormState extends State<AddBill> {
                     border: OutlineInputBorder(),
                   ),
                   keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  const TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Enter a price';
@@ -240,6 +299,17 @@ class _BillEntryFormState extends State<AddBill> {
                   ),
                   maxLines: 5,
                 ),
+                const SizedBox(height: 8),
+
+                if (_receiptImagePath != null)
+                  Text(
+                    'Receipt photo attached.',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: Colors.green),
+                  ),
+
                 const SizedBox(height: 20),
 
                 // buttons row
@@ -249,10 +319,18 @@ class _BillEntryFormState extends State<AddBill> {
                     children: [
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () {
-                            // TODO: hook up to camera/photo if needed
-                          },
-                          child: const Text('Photo add'),
+                          onPressed: _isProcessingReceipt
+                              ? null
+                              : _onPhotoAddPressed,
+                          child: _isProcessingReceipt
+                              ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                              : const Text('Photo add'),
                         ),
                       ),
                       const SizedBox(width: 12),

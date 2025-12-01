@@ -14,6 +14,7 @@ class Expense {
   final double price;
   final bool isRecurring;
   final String? notes;
+  final String? receiptUri; // ADDITION FOR PHOTO CAPTURE
 
   Expense({
     this.id,
@@ -23,6 +24,7 @@ class Expense {
     required this.price,
     required this.isRecurring,
     this.notes,
+    this.receiptUri, // ADDITION FOR PHOTO CAPTURE
   });
 
   Map<String, dynamic> toMap() {
@@ -34,6 +36,7 @@ class Expense {
       'price': price,
       'is_recurring': isRecurring ? 1 : 0,
       'notes': notes,
+      'receipt_uri': receiptUri,
     };
   }
 
@@ -46,6 +49,7 @@ class Expense {
       price: (map['price'] as num).toDouble(),
       isRecurring: (map['is_recurring'] as int) == 1,
       notes: map['notes'] as String?,
+      receiptUri: map['receipt_uri'] as String?,
     );
   }
 }
@@ -93,7 +97,8 @@ class WalletFlowDB {
             date TEXT NOT NULL,
             price REAL NOT NULL,
             is_recurring INTEGER NOT NULL,
-            notes TEXT
+            notes TEXT,
+            receipt_uri TEXT
           )
         ''');
       },

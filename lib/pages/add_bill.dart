@@ -1,6 +1,7 @@
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:io';
 
 import '../database/db_helper.dart';
 
@@ -45,17 +46,7 @@ class _BillEntryFormState extends State<AddBill> {
     final date = _dateController.text.trim();
     final price = double.parse(_priceController.text.trim());
 
-    // Attach receipt image path into notes so it is saved in the DB
-    String notesText = _notesController.text.trim();
-    if (_receiptImagePath != null && _receiptImagePath!.isNotEmpty) {
-      final receiptLine = 'Receipt image path: $_receiptImagePath';
-      if (notesText.isEmpty) {
-        notesText = receiptLine;
-      } else if (!notesText.contains(receiptLine)) {
-        notesText = '$notesText\n$receiptLine';
-      }
-    }
-
+    final notesText = _notesController.text.trim();
     final notes = notesText.isEmpty ? null : notesText;
 
     final name = _selectedName ?? 'Unknown';
@@ -67,6 +58,7 @@ class _BillEntryFormState extends State<AddBill> {
       price: price,
       isRecurring: _isReoccurring,
       notes: notes,
+      receiptUri: _receiptImagePath, //save image path in DB
     );
 
     try {
@@ -75,7 +67,8 @@ class _BillEntryFormState extends State<AddBill> {
       debugPrint(
         'AddBill: inserted expense id=$id '
             'Name: $name, Place: $place, Date: $date, Price: $price, '
-            'Reoccurring: $_isReoccurring, Notes: $notes',
+            'Reoccurring: $_isReoccurring, Notes: $notes, '
+            'ReceiptUri: $_receiptImagePath',
       );
 
       if (!mounted) return;
@@ -100,7 +93,7 @@ class _BillEntryFormState extends State<AddBill> {
       setState(() {
         _selectedName = null;
         _isReoccurring = false;
-        _receiptImagePath = null;
+        _receiptImagePath = null; // reset stored image
       });
     } catch (e) {
       debugPrint('AddBill: error inserting bill: $e');
@@ -301,14 +294,28 @@ class _BillEntryFormState extends State<AddBill> {
                 ),
                 const SizedBox(height: 8),
 
-                if (_receiptImagePath != null)
+                // Image Preview
+                if (_receiptImagePath != null) ...[
                   Text(
-                    'Receipt photo attached.',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: Colors.green),
+                    'Receipt photo preview:',
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
+                  const SizedBox(height: 8),
+
+                  // We can adjust this if you guys dont like it
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      File(_receiptImagePath!),
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+                ],
+
 
                 const SizedBox(height: 20),
 

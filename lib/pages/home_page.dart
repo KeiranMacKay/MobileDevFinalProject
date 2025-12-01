@@ -1,41 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+import '../database/db_helper.dart';
 
-//account class
-class Account extends StatelessWidget {
-  final String accountName;
-  final List<String>? userNames;
-  final List<List<double>>? userSpending;
+/// Simple widget used to render a bill row (visual only).
+class BillRow extends StatelessWidget {
+  final Expense expense;
 
-  const Account({
-    super.key,
-    required this.accountName,
-    this.userNames,
-    this.userSpending,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
-
-
-//bill class
-class Bill extends StatelessWidget {
-  final String name;
-  final String place;
-  final String date;
-  final double price;
-
-  const Bill({
-    super.key,
-    required this.name,
-    required this.place,
-    required this.date,
-    required this.price,
-  });
+  const BillRow({super.key, required this.expense});
 
   @override
   Widget build(BuildContext context) {
@@ -46,26 +18,40 @@ class Bill extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "$name: $place",
+              '${expense.name}: ${expense.place}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 2),
             Text(
-              date,
+              expense.date,
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
-        Text('\$${price.toStringAsFixed(2)}'),
+        Text('\$${expense.price.toStringAsFixed(2)}'),
       ],
     );
   }
 }
 
-class HomePage extends StatelessWidget {
+/// Dummy account class used only for graph + header.
+/// In a real version this would also come from DB.
+class Account {
+  final String accountName;
+  final List<String>? userNames;
+  final List<List<double>>? userSpending;
+
+  const Account({
+    required this.accountName,
+    this.userNames,
+    this.userSpending,
+  });
+}
+
+class HomePage extends StatefulWidget {
   HomePage({super.key});
 
-  //account class call, if the database can just write directly to this it'll work perfectly
+  // initial mock data for chart / names
   final Account testAccount = const Account(
     accountName: "The cheapies",
     userNames: ["Cheapy", "Spendy", "Wastey", "Hoardy", "Greedy", "John"],
@@ -79,40 +65,54 @@ class HomePage extends StatelessWidget {
     ],
   );
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  List<Expense> _recentExpenses = [];
+  bool _isLoading = true;
+
   final List<String> currentViewableMonths =
-  const ['Jan', 'Feb', 'Mar', 'Apr', 'May'];
+      const ['Jan', 'Feb', 'Mar', 'Apr', 'May'];
   final double graphMax = 10000.0;
 
   @override
+  void initState() {
+    super.initState();
+    _loadExpenses();
+  }
+
+  Future<void> _loadExpenses() async {
+    try {
+      final expenses = await WalletFlowDB.instance.getRecentExpenses(limit: 50);
+      setState(() {
+        _recentExpenses = expenses;
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('HomePage: error loading expenses: $e');
+      setState(() {
+        _recentExpenses = [];
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    //hook up database to this so that it writes bill within the database
-    final List<Bill> bills = const [
-      Bill(
-        name: 'Cheapy',
-        place: 'Starbucks',
-        date: '2025-11-11',
-        price: 10.50,
-      ),
-      Bill(
-        name: 'Spendy',
-        place: 'McDonalds',
-        date: '2025-11-12',
-        price: 15.00,
-      ),
-    ];
+    final account = widget.testAccount;
+    final peopleCount = account.userNames?.length ?? 0;
+    final monthsCount = currentViewableMonths.length;
 
-    final int peopleCount = testAccount.userNames?.length ?? 0;
-    final int monthsCount = currentViewableMonths.length;
-
-    //getting spacing right on name display box
-    final double availableWidth =
-        MediaQuery.of(context).size.width - 32;
-    final double tileWidth = availableWidth / 2;
+    // spacing calc
+    final availableWidth = MediaQuery.of(context).size.width - 32;
+    final tileWidth = availableWidth / 2;
 
     Widget buildPersonTile(int index) {
-      final name = testAccount.userNames?[index] ?? 'User';
+      final name = account.userNames?[index] ?? 'User';
       final lastMonthSpending =
-          testAccount.userSpending?[index][monthsCount - 1] ?? 0.0;
+          account.userSpending?[index][monthsCount - 1] ?? 0.0;
 
       return Center(
         child: Column(
@@ -137,7 +137,7 @@ class HomePage extends StatelessWidget {
               backgroundColor: Colors.white,
               foregroundColor: Colors.blue,
               child: Text(
-                testAccount.accountName[0].toUpperCase(),
+                account.accountName[0].toUpperCase(),
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -146,14 +146,13 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Text(
-              'Welcome ${testAccount.accountName}',
+              'Welcome ${account.accountName}',
               style: const TextStyle(fontSize: 18),
             ),
           ],
         ),
         backgroundColor: Colors.blue,
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -166,7 +165,7 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 0),
 
-            //bar chart updates dynamically, based on provided user data
+            // bar chart (still mock data, but dynamic)
             SizedBox(
               height: MediaQuery.of(context).size.height / 3,
               child: BarChart(
@@ -203,13 +202,12 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   barGroups: List.generate(monthsCount, (monthIndex) {
                     return BarChartGroupData(
                       x: monthIndex,
                       barRods: List.generate(peopleCount, (personIndex) {
                         final personSpending =
-                            testAccount.userSpending?[personIndex][monthIndex] ??
+                            account.userSpending?[personIndex][monthIndex] ??
                                 0;
                         final color = Colors
                             .primaries[personIndex % Colors.primaries.length];
@@ -226,7 +224,7 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 1),
 
-            //values for the current month
+            // values for current month
             if (peopleCount > 0)
               Column(
                 children: [
@@ -250,20 +248,20 @@ class HomePage extends StatelessWidget {
                     child: peopleCount == 1
                         ? buildPersonTile(0)
                         : ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: peopleCount,
-                      itemExtent: tileWidth,
-                      physics: const BouncingScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        return buildPersonTile(index);
-                      },
-                    ),
+                            scrollDirection: Axis.horizontal,
+                            itemCount: peopleCount,
+                            itemExtent: tileWidth,
+                            physics: const BouncingScrollPhysics(),
+                            itemBuilder: (context, index) {
+                              return buildPersonTile(index);
+                            },
+                          ),
                   ),
                 ],
               ),
             const SizedBox(height: 1),
 
-            //transaction history, should show all transactions over all months
+            // transaction history (from DB if available)
             Expanded(
               child: Container(
                 padding: const EdgeInsets.all(12),
@@ -285,18 +283,29 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-
                     Expanded(
-                      child: Scrollbar(
-                        child: ListView.builder(
-                          itemCount: bills.length,
-                          itemBuilder: (context, i) => Padding(
-                            padding:
-                            const EdgeInsets.symmetric(vertical: 4),
-                            child: bills[i],
-                          ),
-                        ),
-                      ),
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : _recentExpenses.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    'No transactions yet.\nAdd a bill to see it here.',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                )
+                              : Scrollbar(
+                                  child: ListView.builder(
+                                    itemCount: _recentExpenses.length,
+                                    itemBuilder: (context, i) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 4,
+                                      ),
+                                      child: BillRow(
+                                        expense: _recentExpenses[i],
+                                      ),
+                                    ),
+                                  ),
+                                ),
                     ),
                   ],
                 ),

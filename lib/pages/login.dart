@@ -15,39 +15,26 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  //testing login
-  final String _validEmail = 'test';
-  final String _validPassword = 'test';
-
   void _login() {
     if (_formKey.currentState!.validate()) {
-      String email = _emailController.text.trim();
-      String password = _passwordController.text.trim();
+      final email = _emailController.text.trim();
 
-      if (email == _validEmail && password == _validPassword) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Welcome, $email!'),
-            duration: const Duration(seconds: 3),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+      // Simple "student project" login: any non-empty credentials are accepted
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Welcome, $email!'),
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
 
-        // Delay navigation slightly so the snackbar can appear first
-        Future.delayed(const Duration(milliseconds: 500), () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => MainPage()),
-          );
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid email or password'),
-            duration: Duration(seconds: 2),
-          ),
+      // Delay navigation slightly so the snackbar can appear first
+      Future.delayed(const Duration(milliseconds: 500), () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainPage()),
         );
-      }
+      });
     }
   }
 
@@ -72,7 +59,7 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               const SizedBox(height: 50),
 
-              //username entry
+              // username entry
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -80,11 +67,13 @@ class _LoginPageState extends State<LoginPage> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) =>
-                value == null || value.isEmpty ? 'Enter your email or username' : null,
+                    value == null || value.isEmpty
+                        ? 'Enter your email or username'
+                        : null,
               ),
               const SizedBox(height: 16),
 
-              //password entry
+              // password entry
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(
@@ -93,26 +82,32 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 obscureText: true,
                 validator: (value) =>
-                value == null || value.isEmpty ? 'Enter your password' : null,
+                    value == null || value.isEmpty
+                        ? 'Enter your password'
+                        : null,
               ),
               const SizedBox(height: 24),
 
-              //submission button
+              // submission button
               ElevatedButton(
-                onPressed: () async{
-                  await Notifications().showNoti(
-                    title: 'Login',
-                    body:'You have logged in successfully',
-                  );
+                onPressed: () async {
+                  // Try to show a notification, but don't break login if it fails
+                  try {
+                    await Notifications().showNoti(
+                      title: 'Login',
+                      body: 'You have logged in successfully',
+                    );
+                  } catch (e) {
+                    debugPrint('Notification error: $e');
+                  }
+
                   _login();
                 },
-
-
                 child: const Text('Submit'),
               ),
               const SizedBox(height: 16),
 
-              //button to send to account creation
+              // button to send to account creation
               TextButton(
                 onPressed: _goToAccountCreation,
                 child: const Text(
@@ -127,5 +122,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
-

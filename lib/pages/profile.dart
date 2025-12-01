@@ -10,16 +10,17 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-  //account username
+  // account username
   final String username = 'The cheapies';
-  //list of users
+
+  // list of users
   final List<String> _users = [
     'Cheapy',
     'Spendy',
     'Wastey',
     'Hoardy',
     'Greedy',
-    'John'
+    'John',
   ];
 
   @override
@@ -55,7 +56,7 @@ class _ProfileState extends State<Profile> {
             ),
             const SizedBox(height: 30),
 
-            //dynamic list, 2-6
+            // dynamic list of users (2–6)
             Expanded(
               child: ListView.builder(
                 itemCount: _users.length,
@@ -81,21 +82,27 @@ class _ProfileState extends State<Profile> {
               ),
             ),
 
-            //logout button
+            // logout button
             Center(
               child: ElevatedButton.icon(
-                onPressed: () async {
-                  await Notifications().showNoti(
-                    title: "Logout",
-                    body: "You have been logged out.",
-                  );
+                onPressed: () {
+                  // Fire-and-forget notification; if it throws,
+                  // we still want to log out.
+                  try {
+                    Notifications().showNoti(
+                      title: "Logout",
+                      body: "You have been logged out.",
+                    );
+                  } catch (_) {
+                    // ignore notification errors
+                  }
 
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const LoginPage(),
                     ),
-                        (route) => false,
+                    (route) => false,
                   );
                 },
                 icon: const Icon(Icons.logout),
@@ -108,4 +115,3 @@ class _ProfileState extends State<Profile> {
     );
   }
 }
-

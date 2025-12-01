@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+
 import 'pages/home_page.dart';
 import 'pages/login.dart';
+import 'pages/account_creation.dart';
 import 'pages/monthly_breakdown.dart';
 import 'pages/profile.dart';
 import 'pages/add_bill.dart';
-import 'package:finalproject/notifications.dart';
 
-Future<void> main() async{
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await Notifications().initNotification(); // Initializing Notifications
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -20,8 +20,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Final Project',
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: LoginPage(),
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.blue,
+      ),
+      home: const LoginPage(),
     );
   }
 }
@@ -38,9 +41,9 @@ class _MainPageState extends State<MainPage> {
 
   final List<Widget> _pages = [
     HomePage(),
-    MonthlyBreakdown(),
-    AddBill(),
-    Profile(),
+    const MonthlyBreakdown(),
+    const AddBill(),
+    const Profile(),
   ];
 
   void _onItemTapped(int index) {

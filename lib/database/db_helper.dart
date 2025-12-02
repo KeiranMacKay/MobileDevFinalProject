@@ -24,7 +24,7 @@ class Expense {
     required this.price,
     required this.isRecurring,
     this.notes,
-    this.receiptUri, // ADDITION FOR PHOTO CAPTURE
+    this.receiptUri,
   });
 
   Map<String, dynamic> toMap() {
@@ -52,6 +52,17 @@ class Expense {
       receiptUri: map['receipt_uri'] as String?,
     );
   }
+}
+
+/// Simple model for "per-person total for a month".
+class PersonMonthlyTotal {
+  final String name;
+  final double total;
+
+  PersonMonthlyTotal({
+    required this.name,
+    required this.total,
+  });
 }
 
 /// Singleton database helper.
@@ -158,5 +169,46 @@ class WalletFlowDB {
       limit: limit,
     );
     return result.map((row) => Expense.fromMap(row)).toList();
+  }
+
+  /// Get per-person totals for a specific month (default = current month).
+  ///
+  /// This powers "Your Spending This Month" on the Home screen.
+  Future<List<PersonMonthlyTotal>> getCurrentMonthTotals({
+    int? year,
+    int? month,
+  }) async {
+    final db = await database;
+    if (db == null) {
+      debugPrint(
+        'WalletFlowDB: getCurrentMonthTotals -> empty (no DB on this platform)',
+      );
+      return [];
+    }
+
+    final now = DateTime.now();
+    final y = year ?? now.year;
+    final m = month ?? now.month;
+
+    final ym =
+        '${y.toString().padLeft(4, '0')}-${m.toString().padLeft(2, '0')}';
+
+    // date stored as 'YYYY-MM-DD', so we match 'YYYY-MM-%'
+    final result = await db.rawQuery('''
+      SELECT name, SUM(price) AS total
+      FROM expenses
+      WHERE date LIKE ?
+      GROUP BY name
+      ORDER BY name COLLATE NOCASE
+    ''', ['$ym%']);
+
+    return result.map((row) {
+      final name = row['name'] as String;
+      final totalNum = row['total'] as num? ?? 0;
+      return PersonMonthlyTotal(
+        name: name,
+        total: totalNum.toDouble(),
+      );
+    }).toList();
   }
 }

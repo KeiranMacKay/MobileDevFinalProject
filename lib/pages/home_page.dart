@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import '../database/db_helper.dart';
-import 'bill_info.dart';
 
 /// Simple widget used to render a bill row (visual only).
 class BillRow extends StatelessWidget {
@@ -75,7 +74,7 @@ class _HomePageState extends State<HomePage> {
   bool _isLoading = true;
 
   final List<String> currentViewableMonths =
-  const ['Jan', 'Feb', 'Mar', 'Apr', 'May'];
+      const ['Jan', 'Feb', 'Mar', 'Apr', 'May'];
   final double graphMax = 10000.0;
 
   @override
@@ -249,14 +248,14 @@ class _HomePageState extends State<HomePage> {
                     child: peopleCount == 1
                         ? buildPersonTile(0)
                         : ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: peopleCount,
-                      itemExtent: tileWidth,
-                      physics: const BouncingScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        return buildPersonTile(index);
-                      },
-                    ),
+                            scrollDirection: Axis.horizontal,
+                            itemCount: peopleCount,
+                            itemExtent: tileWidth,
+                            physics: const BouncingScrollPhysics(),
+                            itemBuilder: (context, index) {
+                              return buildPersonTile(index);
+                            },
+                          ),
                   ),
                 ],
               ),
@@ -288,41 +287,25 @@ class _HomePageState extends State<HomePage> {
                       child: _isLoading
                           ? const Center(child: CircularProgressIndicator())
                           : _recentExpenses.isEmpty
-                          ? const Center(
-                        child: Text(
-                          'No transactions yet.\nAdd a bill to see it here.',
-                          textAlign: TextAlign.center,
-                        ),
-                      )
-                          : Scrollbar(
-                        child: ListView.builder(
-                          itemCount: _recentExpenses.length,
-                          itemBuilder: (context, i) {
-                            final expense = _recentExpenses[i];
-                            return InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        BillInfoPage(
-                                          expense: expense,
-                                        ),
+                              ? const Center(
+                                  child: Text(
+                                    'No transactions yet.\nAdd a bill to see it here.',
+                                    textAlign: TextAlign.center,
                                   ),
-                                );
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 4,
+                                )
+                              : Scrollbar(
+                                  child: ListView.builder(
+                                    itemCount: _recentExpenses.length,
+                                    itemBuilder: (context, i) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 4,
+                                      ),
+                                      child: BillRow(
+                                        expense: _recentExpenses[i],
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                                child: BillRow(
-                                  expense: expense,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
                     ),
                   ],
                 ),

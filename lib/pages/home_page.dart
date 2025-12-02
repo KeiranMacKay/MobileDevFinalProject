@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import '../database/db_helper.dart';
+import 'bill_info.dart';
 
 class BillRow extends StatelessWidget {
   final Expense expense;
@@ -99,7 +100,7 @@ class _HomePageState extends State<HomePage> {
         tempTotals.putIfAbsent(month, () => {});
         tempTotals[month]!.update(
           e.name,
-          (old) => old + e.price,
+              (old) => old + e.price,
           ifAbsent: () => e.price,
         );
         tempPeople.add(e.name);
@@ -199,7 +200,7 @@ class _HomePageState extends State<HomePage> {
                 : _buildStaticCurrentMonth(account, tileWidth),
             const SizedBox(height: 1),
 
-            // Transaction history (DB)
+            // Transaction history (DB) with clickable rows
             Expanded(
               child: Container(
                 padding: const EdgeInsets.all(12),
@@ -225,25 +226,38 @@ class _HomePageState extends State<HomePage> {
                       child: _isLoading
                           ? const Center(child: CircularProgressIndicator())
                           : _recentExpenses.isEmpty
-                              ? const Center(
-                                  child: Text(
-                                    'No transactions yet.\nAdd a bill to see it here.',
-                                    textAlign: TextAlign.center,
+                          ? const Center(
+                        child: Text(
+                          'No transactions yet.\nAdd a bill to see it here.',
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                          : Scrollbar(
+                        child: ListView.builder(
+                          itemCount: _recentExpenses.length,
+                          itemBuilder: (context, i) {
+                            final expense = _recentExpenses[i];
+
+                            return InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        BillInfoPage(expense: expense),
                                   ),
-                                )
-                              : Scrollbar(
-                                  child: ListView.builder(
-                                    itemCount: _recentExpenses.length,
-                                    itemBuilder: (context, i) => Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 4,
-                                      ),
-                                      child: BillRow(
-                                        expense: _recentExpenses[i],
-                                      ),
-                                    ),
-                                  ),
+                                );
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
                                 ),
+                                child: BillRow(expense: expense),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -317,7 +331,7 @@ class _HomePageState extends State<HomePage> {
               final person = people[personIdx];
               final amount = totalsForMonth[person] ?? 0.0;
               final color =
-                  Colors.primaries[personIdx % Colors.primaries.length];
+              Colors.primaries[personIdx % Colors.primaries.length];
 
               return BarChartRodData(
                 toY: amount,
@@ -434,7 +448,7 @@ class _HomePageState extends State<HomePage> {
               final personSpending =
                   account.userSpending?[personIndex][monthIndex] ?? 0;
               final color =
-                  Colors.primaries[personIndex % Colors.primaries.length];
+              Colors.primaries[personIndex % Colors.primaries.length];
               return BarChartRodData(
                 toY: personSpending,
                 color: color,
@@ -494,16 +508,17 @@ class _HomePageState extends State<HomePage> {
           child: peopleCount == 1
               ? buildPersonTile(0)
               : ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: peopleCount,
-                  itemExtent: tileWidth,
-                  physics: const BouncingScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    return buildPersonTile(index);
-                  },
-                ),
+            scrollDirection: Axis.horizontal,
+            itemCount: peopleCount,
+            itemExtent: tileWidth,
+            physics: const BouncingScrollPhysics(),
+            itemBuilder: (context, index) {
+              return buildPersonTile(index);
+            },
+          ),
         ),
       ],
     );
   }
 }
+

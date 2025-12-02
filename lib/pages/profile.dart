@@ -26,12 +26,17 @@ class _ProfileState extends State<Profile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      // IMPORTANT: Scaffold is NOT const, AppBar is fine like this:
+      appBar: AppBar(
+        title: const Text('Profile'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             const SizedBox(height: 30),
+
+            // top avatar + username
             Column(
               children: [
                 CircleAvatar(
@@ -54,9 +59,10 @@ class _ProfileState extends State<Profile> {
                 ),
               ],
             ),
+
             const SizedBox(height: 30),
 
-            // dynamic list of users (2–6)
+            // dynamic list of users
             Expanded(
               child: ListView.builder(
                 itemCount: _users.length,
@@ -85,24 +91,21 @@ class _ProfileState extends State<Profile> {
             // logout button
             Center(
               child: ElevatedButton.icon(
-                onPressed: () {
-                  // Fire-and-forget notification; if it throws,
-                  // we still want to log out.
-                  try {
-                    Notifications().showNoti(
-                      title: "Logout",
-                      body: "You have been logged out.",
-                    );
-                  } catch (_) {
-                    // ignore notification errors
-                  }
+                onPressed: () async {
+                  // show logout notification
+                  await Notifications().showNoti(
+                    title: 'Logout',
+                    body: 'You have been logged out.',
+                  );
 
+                  // go back to login page and clear stack
+                  if (!mounted) return;
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const LoginPage(),
                     ),
-                    (route) => false,
+                        (route) => false,
                   );
                 },
                 icon: const Icon(Icons.logout),

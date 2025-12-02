@@ -38,7 +38,7 @@ class Notifications {
       channelDescription: 'WalletFlow notifications',
       importance: Importance.defaultImportance,
       priority: Priority.defaultPriority,
-      icon: '@mipmap/ic_launcher', // IMPORTANT: avoids the null icon crash
+      icon: '@mipmap/ic_launcher',
     );
 
     const NotificationDetails details = NotificationDetails(

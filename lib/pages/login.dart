@@ -19,7 +19,6 @@ class _LoginPageState extends State<LoginPage> {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text.trim();
 
-      // Simple "student project" login: any non-empty credentials are accepted
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Welcome, $email!'),

@@ -22,13 +22,29 @@ class _BillEntryFormState extends State<AddBill> {
   String? _selectedName;
   bool _isReoccurring = false;
 
-  // dropdown list names
-  final List<String> _names = ['Cheapy', 'Spendy'];
+  // dynamic dropdown list names from DB
+  List<String> _names = [];
 
   // for camera / photo capture
   final ImagePicker _picker = ImagePicker();
   bool _isProcessingReceipt = false;
   String? _receiptImagePath; // path to the captured photo
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMemberNames();
+  }
+
+  Future<void> _loadMemberNames() async {
+    final db = await WalletFlowDB.instance.database;
+    if (db == null) return;
+
+    final result = await db.query('members', columns: ['nickname']);
+    setState(() {
+      _names = result.map((row) => row['nickname'] as String).toList();
+    });
+  }
 
   @override
   void dispose() {
@@ -45,10 +61,9 @@ class _BillEntryFormState extends State<AddBill> {
     final place = _placeController.text.trim();
     final date = _dateController.text.trim();
     final price = double.parse(_priceController.text.trim());
-
-    final notesText = _notesController.text.trim();
-    final notes = notesText.isEmpty ? null : notesText;
-
+    final notes = _notesController.text.trim().isEmpty
+        ? null
+        : _notesController.text.trim();
     final name = _selectedName ?? 'Unknown';
 
     final expense = Expense(
@@ -58,7 +73,7 @@ class _BillEntryFormState extends State<AddBill> {
       price: price,
       isRecurring: _isReoccurring,
       notes: notes,
-      receiptUri: _receiptImagePath, //save image path in DB
+      receiptUri: _receiptImagePath, // save image path in DB
     );
 
     try {
@@ -93,11 +108,10 @@ class _BillEntryFormState extends State<AddBill> {
       setState(() {
         _selectedName = null;
         _isReoccurring = false;
-        _receiptImagePath = null; // reset stored image
+        _receiptImagePath = null;
       });
     } catch (e) {
       debugPrint('AddBill: error inserting bill: $e');
-
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -129,16 +143,12 @@ class _BillEntryFormState extends State<AddBill> {
     try {
       setState(() => _isProcessingReceipt = true);
 
-      // Opening the camera for use
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.camera,
         imageQuality: 85,
       );
 
-      // Dealing with user not taking the photo and cancelling
-      if (pickedFile == null) {
-        return;
-      }
+      if (pickedFile == null) return;
 
       setState(() {
         _receiptImagePath = pickedFile.path;
@@ -301,8 +311,6 @@ class _BillEntryFormState extends State<AddBill> {
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const SizedBox(height: 8),
-
-                  // We can adjust this if you guys dont like it
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.file(
@@ -312,10 +320,8 @@ class _BillEntryFormState extends State<AddBill> {
                       fit: BoxFit.cover,
                     ),
                   ),
-
                   const SizedBox(height: 12),
                 ],
-
 
                 const SizedBox(height: 20),
 

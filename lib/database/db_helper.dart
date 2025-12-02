@@ -83,24 +83,46 @@ class WalletFlowDB {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'walletflow.db');
 
-    // If you want, you can later copy an asset DB here.
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // bump version
       onCreate: (db, version) async {
-        // Very simple schema focused on this app's needs.
+        // initial table creation
         await db.execute('''
-          CREATE TABLE IF NOT EXISTS expenses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            place TEXT NOT NULL,
-            date TEXT NOT NULL,
-            price REAL NOT NULL,
-            is_recurring INTEGER NOT NULL,
-            notes TEXT,
-            receipt_uri TEXT
-          )
-        ''');
+        CREATE TABLE IF NOT EXISTS expenses (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          place TEXT NOT NULL,
+          date TEXT NOT NULL,
+          price REAL NOT NULL,
+          is_recurring INTEGER NOT NULL,
+          notes TEXT,
+          receipt_uri TEXT
+        )
+      ''');
+        await db.execute('''
+        CREATE TABLE IF NOT EXISTS members (
+          member_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          nickname TEXT NOT NULL,
+          color_hex TEXT,
+          UNIQUE(user_id, nickname)
+        )
+      ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          // Add members table to existing DB
+          await db.execute('''
+        CREATE TABLE IF NOT EXISTS members (
+          member_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          nickname TEXT NOT NULL,
+          color_hex TEXT,
+          UNIQUE(user_id, nickname)
+        )
+      ''');
+        }
       },
     );
   }

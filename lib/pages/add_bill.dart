@@ -1,7 +1,5 @@
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:io';
 
 import '../database/db_helper.dart';
 
@@ -22,85 +20,51 @@ class _BillEntryFormState extends State<AddBill> {
   String? _selectedName;
   bool _isReoccurring = false;
 
-  // dynamic dropdown list names from DB
-  List<String> _names = [];
-
-  // for camera / photo capture
-  final ImagePicker _picker = ImagePicker();
-  bool _isProcessingReceipt = false;
-  String? _receiptImagePath; // path to the captured photo
-
-  @override
-  void initState() {
-    super.initState();
-    _loadMemberNames();
-  }
-
-  Future<void> _loadMemberNames() async {
-    final db = await WalletFlowDB.instance.database;
-    if (db == null) return;
-
-    final result = await db.query('members', columns: ['nickname']);
-    setState(() {
-      _names = result.map((row) => row['nickname'] as String).toList();
-    });
-  }
-
-  @override
-  void dispose() {
-    _placeController.dispose();
-    _dateController.dispose();
-    _priceController.dispose();
-    _notesController.dispose();
-    super.dispose();
-  }
+  // Fixed list of people for the dropdown
+  final List<String> _names = [
+    'Cheapy',
+    'Spendy',
+    'Wastey',
+    'Hoardy',
+    'Greedy',
+    'John',
+  ];
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final place = _placeController.text.trim();
-    final date = _dateController.text.trim();
-    final price = double.parse(_priceController.text.trim());
-    final notes = _notesController.text.trim().isEmpty
-        ? null
-        : _notesController.text.trim();
-    final name = _selectedName ?? 'Unknown';
+    if (_selectedName == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a name'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final String place = _placeController.text.trim();
+    final String date = _dateController.text.trim();
+    final double price = double.parse(_priceController.text.trim());
+    final String? notes =
+        _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
 
     final expense = Expense(
-      name: name,
+      name: _selectedName!,
       place: place,
       date: date,
       price: price,
       isRecurring: _isReoccurring,
       notes: notes,
-      receiptUri: _receiptImagePath, // save image path in DB
+      receiptUri: null,
     );
 
     try {
       final id = await WalletFlowDB.instance.insertExpense(expense);
-
       debugPrint(
-        'AddBill: inserted expense id=$id '
-            'Name: $name, Place: $place, Date: $date, Price: $price, '
-            'Reoccurring: $_isReoccurring, Notes: $notes, '
-            'ReceiptUri: $_receiptImagePath',
-      );
+          'AddBill: inserted expense id=$id Name: ${expense.name}, Place: ${expense.place}, Date: ${expense.date}, Price: ${expense.price}, Reoccurring: ${expense.isRecurring}, Notes: ${expense.notes}');
 
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            id == null
-                ? 'Bill added (local only, DB not available on this platform).'
-                : 'Bill added successfully!',
-          ),
-          duration: const Duration(seconds: 3),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-
-      // clear fields
+      // Reset form
       _placeController.clear();
       _dateController.clear();
       _priceController.clear();
@@ -108,11 +72,17 @@ class _BillEntryFormState extends State<AddBill> {
       setState(() {
         _selectedName = null;
         _isReoccurring = false;
-        _receiptImagePath = null;
       });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Bill added successfully!'),
+          duration: Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
       debugPrint('AddBill: error inserting bill: $e');
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Error saving bill to database'),
@@ -124,8 +94,8 @@ class _BillEntryFormState extends State<AddBill> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final now = DateTime.now();
-    final pickedDate = await showDatePicker(
+    DateTime now = DateTime.now();
+    final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: now,
       firstDate: DateTime(1900),
@@ -139,43 +109,13 @@ class _BillEntryFormState extends State<AddBill> {
     }
   }
 
-  Future<void> _onPhotoAddPressed() async {
-    try {
-      setState(() => _isProcessingReceipt = true);
-
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 85,
-      );
-
-      if (pickedFile == null) return;
-
-      setState(() {
-        _receiptImagePath = pickedFile.path;
-      });
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Photo has been captured'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } catch (e) {
-      debugPrint('Error with photo capture $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error with photo capture $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isProcessingReceipt = false);
-      }
-    }
+  @override
+  void dispose() {
+    _placeController.dispose();
+    _dateController.dispose();
+    _priceController.dispose();
+    _notesController.dispose();
+    super.dispose();
   }
 
   @override
@@ -190,7 +130,7 @@ class _BillEntryFormState extends State<AddBill> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // dropdown row
+                // name + recurring row
                 Row(
                   children: [
                     Expanded(
@@ -201,12 +141,10 @@ class _BillEntryFormState extends State<AddBill> {
                         ),
                         value: _selectedName,
                         items: _names
-                            .map(
-                              (name) => DropdownMenuItem(
-                            value: name,
-                            child: Text(name),
-                          ),
-                        )
+                            .map((name) => DropdownMenuItem(
+                                  value: name,
+                                  child: Text(name),
+                                ))
                             .toList(),
                         onChanged: (value) {
                           setState(() {
@@ -214,7 +152,7 @@ class _BillEntryFormState extends State<AddBill> {
                           });
                         },
                         validator: (value) =>
-                        value == null ? 'Select a name' : null,
+                            value == null ? 'Select a name' : null,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -235,7 +173,7 @@ class _BillEntryFormState extends State<AddBill> {
                 ),
                 const SizedBox(height: 12),
 
-                // place
+                // Place
                 TextFormField(
                   controller: _placeController,
                   decoration: const InputDecoration(
@@ -243,11 +181,11 @@ class _BillEntryFormState extends State<AddBill> {
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) =>
-                  value == null || value.isEmpty ? 'Enter a place' : null,
+                      value == null || value.isEmpty ? 'Enter a place' : null,
                 ),
                 const SizedBox(height: 12),
 
-                // date
+                // Date
                 TextFormField(
                   controller: _dateController,
                   readOnly: true,
@@ -262,8 +200,8 @@ class _BillEntryFormState extends State<AddBill> {
                     if (value == null || value.isEmpty) {
                       return 'Enter a date';
                     }
-                    final reg = RegExp(r'^\d{4}-\d{2}-\d{2}$');
-                    if (!reg.hasMatch(value)) {
+                    final RegExp dateRegExp = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+                    if (!dateRegExp.hasMatch(value)) {
                       return 'Enter date in format YYYY-MM-DD';
                     }
                     return null;
@@ -271,7 +209,7 @@ class _BillEntryFormState extends State<AddBill> {
                 ),
                 const SizedBox(height: 12),
 
-                // price
+                // Price
                 TextFormField(
                   controller: _priceController,
                   decoration: const InputDecoration(
@@ -279,7 +217,7 @@ class _BillEntryFormState extends State<AddBill> {
                     border: OutlineInputBorder(),
                   ),
                   keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+                      const TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Enter a price';
@@ -292,7 +230,7 @@ class _BillEntryFormState extends State<AddBill> {
                 ),
                 const SizedBox(height: 12),
 
-                // notes
+                // Notes
                 TextFormField(
                   controller: _notesController,
                   decoration: const InputDecoration(
@@ -302,62 +240,30 @@ class _BillEntryFormState extends State<AddBill> {
                   ),
                   maxLines: 5,
                 ),
-                const SizedBox(height: 8),
-
-                // Image Preview
-                if (_receiptImagePath != null) ...[
-                  Text(
-                    'Receipt photo preview:',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.file(
-                      File(_receiptImagePath!),
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-
                 const SizedBox(height: 20),
 
-                // buttons row
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _isProcessingReceipt
-                              ? null
-                              : _onPhotoAddPressed,
-                          child: _isProcessingReceipt
-                              ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
-                          )
-                              : const Text('Photo add'),
+                // Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // TODO: hook camera/gallery here if needed
+                        },
+                        child: const Text('Photo add'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _submit,
+                        child: const Text(
+                          'Submit Bill',
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _submit,
-                          child: const Text(
-                            'Submit Bill',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),

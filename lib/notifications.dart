@@ -1,57 +1,59 @@
-import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class Notifications {
-  Notifications._internal();
   static final Notifications _instance = Notifications._internal();
   factory Notifications() => _instance;
-  final FlutterLocalNotificationsPlugin notificationsPlugin =
-  FlutterLocalNotificationsPlugin();
-  bool _isInitialized = false;
-  bool get isInitialized => _isInitialized;
+  Notifications._internal();
 
-  Future<void> initNotification() async {
-    if (_isInitialized) return;
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initSettings = InitializationSettings(
-      android: androidInit,
+  final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
+
+  bool _initialized = false;
+
+  Future<void> _init() async {
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const InitializationSettings settings = InitializationSettings(
+      android: androidSettings,
     );
 
-    await notificationsPlugin.initialize(initSettings);
-
-    if (Platform.isAndroid) {
-      final androidImpl =
-      notificationsPlugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
-
-      await androidImpl?.requestNotificationsPermission();
-    }
-
-    _isInitialized = true;
-  }
-
-  NotificationDetails _notificationDetails() {
-    return const NotificationDetails(
-      android: AndroidNotificationDetails(
-        'daily_channel_id',
-        'Daily Notifications',
-        channelDescription: 'Daily Noti Channel',
-        importance: Importance.max,
-        priority: Priority.high,
-      ),
-    );
+    await _plugin.initialize(settings);
+    _initialized = true;
   }
 
   Future<void> showNoti({
-    int id = 0,
-    String? title,
-    String? body,
+    required String title,
+    required String body,
   }) async {
-    await notificationsPlugin.show(
-      id,
-      title,
-      body,
-      _notificationDetails(),
+    if (!_initialized) {
+      await _init();
+    }
+
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'default_channel',
+      'Default Notifications',
+      channelDescription: 'WalletFlow notifications',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+      icon: '@mipmap/ic_launcher', // IMPORTANT: avoids the null icon crash
     );
+
+    const NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+    );
+
+    try {
+      await _plugin.show(
+        0,
+        title,
+        body,
+        details,
+      );
+    } catch (e, st) {
+      debugPrint('Notification error: $e\n$st');
+    }
   }
 }

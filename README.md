@@ -1,5 +1,14 @@
 # Mobile Dev Final Project
 
+## Group Members
+Keiran MacKay - 100747838
+
+Naveenan Vigitharan - 100867059
+
+Justin Lau - 100877853
+
+Ata-US-Samad Khan - 100754092
+
 WalletFlow, a banking app that can be shared by multiple people to track expenses.
 
 ## Pages

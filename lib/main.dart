@@ -6,9 +6,12 @@ import 'pages/account_creation.dart';
 import 'pages/monthly_breakdown.dart';
 import 'pages/profile.dart';
 import 'pages/add_bill.dart';
+import 'database/db_helper.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Ensure database is initialized
+  await WalletFlowDB.instance.database;
   runApp(const MyApp());
 }
 
